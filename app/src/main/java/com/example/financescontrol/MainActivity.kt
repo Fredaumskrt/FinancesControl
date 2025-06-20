@@ -40,23 +40,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             FinanceControlTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    FinanceControlLayout()
-                }
+                FinanceControlScreen() // objetivo eh trazer a tela pra ca
             }
         }
     }
 }
 
 // Modelo de dados para transações
+enum class TransactionCategory {
+    ALIMENTACAO, TRANSPORTE, MORADIA, LAZER, SAUDE, EDUCACAO, SALARIO, OUTROS
+}
+
 data class Transaction(
     val id: Int,
     val description: String,
     val amount: Double,
-    val type: String, // "income" ou "expense"
-    val date: String
+    val type: String,
+    val date: String,
+    val category: TransactionCategory
+
 )
 
 @Composable
