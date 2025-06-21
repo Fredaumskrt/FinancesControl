@@ -20,25 +20,25 @@ import androidx.core.view.WindowCompat
 val FinanceGreen = Color(0xFF4CAF50)  // positivo
 val FinanceRed = Color(0xFFF44336)    // negativo
 val FinanceBlue = Color(0xFF2196F3)
-val FinanceDarkBlue = Color(0xFF1565C0)
-val FinanceLightGray = Color(0xFFF5F5F5)
+//val FinanceDarkBlue = Color(0xFF1565C0)
+//val FinanceLightGray = Color(0xFFF5F5F5)
 
 
 private val LightFinanceColorScheme = lightColorScheme(
     primary = FinanceBlue,
-    onPrimary = Color.White,
-    primaryContainer = FinanceDarkBlue,
-    onPrimaryContainer = Color.White,
-
     secondary = FinanceGreen,
+    tertiary = Color(0xFF7E57C2),
+    background = Color(0xFFF5F5F5),
+
+
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFE8F5E9),
     onSecondaryContainer = Color(0xFF1B5E20),
 
-    tertiary = Color(0xFF7E57C2),
+
     onTertiary = Color.White,
 
-    background = FinanceLightGray,
+
     onBackground = Color.Black,
 
     surface = Color.White,

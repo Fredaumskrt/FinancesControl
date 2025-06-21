@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.sp
 //     Font(R.font.rubik_bold, FontWeight.Bold)
 // )
 
+
 val FinanceTypography = Typography(
     displayLarge = TextStyle(
         fontWeight = FontWeight.Bold,
