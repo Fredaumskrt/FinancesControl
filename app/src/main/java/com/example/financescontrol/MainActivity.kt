@@ -1,227 +1,217 @@
-package com.example.financecontrol
+package com.example.financescontrol
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            FinanceControlTheme {
-                FinanceControlScreen() // objetivo eh trazer a tela pra ca
+            FinanceAppTheme {
+                FinanceControlScreen()
             }
         }
     }
 }
 
-// Modelo de dados para transações
-enum class TransactionCategory {
-    ALIMENTACAO, TRANSPORTE, MORADIA, LAZER, SAUDE, EDUCACAO, SALARIO, OUTROS
-}
-
+// 1. Modelo de dados simplificado
 data class Transaction(
     val id: Int,
     val description: String,
     val amount: Double,
-    val type: String,
-    val date: String,
-    val category: TransactionCategory
-
+    val isIncome: Boolean,
+    val date: String = LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("dd/MM HH:mm"))
 )
 
+val euroFormat = NumberFormat.getCurrencyInstance().apply {
+    currency = Currency.getInstance("EUR")
+} // Reais -> Euro
+
+// 2. Tela principal tudo junto
 @Composable
-fun FinanceControlLayout() {
-    // Estados do aplicativo
-    val description = remember { mutableStateOf("") }
-    val amount = remember { mutableStateOf("") }
-    val transactionType = remember { mutableStateOf("expense") }
-    val transactions = remember { mutableStateOf(listOf<Transaction>()) }
+fun FinanceControlScreen() {
+    var description by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("") }
+    var isIncome by remember { mutableStateOf(false) }
+    var transactions by remember { mutableStateOf<List<Transaction>>(emptyList()) }
 
-    // teste para saldo atual
-
-    val balanceTest = transactions.value.sumOf{
-        if (it.type == "income") it.amount else - it.amount
-    }
+    val balance = transactions.sumOf { if (it.isIncome) it.amount else -it.amount }
 
     Column(
         modifier = Modifier
-            .statusBarsPadding()
-            .padding(horizontal = 16.dp)
-            .safeDrawingPadding(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+            .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Cabeçalho
         Text(
             text = "Controle Financeiro",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
-
-        // Exibe o saldo atual
-        Text(
-            text = "Saldo: ${NumberFormat.getCurrencyInstance().format(balanceTest)}",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
         )
 
-        // Campo de descrição
-        TextField(
-            value = description.value,
-            onValueChange = { description.value = it },
+        // Saldo
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = if (balance >= 0) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Saldo Atual",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = euroFormat.format(balance),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = if (balance >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
+                )
+            }
+
+            // Se for usar saldo BRL descomentar esta linha
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                Text("Saldo Atual")
+//                Text(
+//                    NumberFormat.getCurrencyInstance().format(balance),
+//                    style = MaterialTheme.typography.headlineMedium,
+//                    color = if (balance >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
+//                )
+//            }
+        }
+
+        // Formulário
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
             label = { Text("Descrição") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
+            modifier = Modifier.fillMaxWidth()
         )
 
-        // Campo de valor
-        TextField(
-            value = amount.value,
-            onValueChange = { newValue ->
-                if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
-                    amount.value = newValue
-                }
-            },
+        OutlinedTextField(
+            value = euroFormat.format(amount.toDoubleOrNull() ?: 0.0),
+            onValueChange = { /* lógica de conversão */ },
             label = { Text("Valor") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
+            modifier = Modifier.fillMaxWidth()
         )
 
-        // Seleção do tipo de transação
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 16.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             RadioButton(
-                selected = transactionType.value == "expense",
-                onClick = { transactionType.value = "expense" }
+                selected = !isIncome,
+                onClick = { isIncome = false }
             )
-            Text("Despesa", modifier = Modifier.padding(end = 16.dp))
+            Text("Despesa")
+
+            Spacer(modifier = Modifier.width(16.dp))
 
             RadioButton(
-                selected = transactionType.value == "income",
-                onClick = { transactionType.value = "income" }
+                selected = isIncome,
+                onClick = { isIncome = true }
             )
             Text("Receita")
         }
 
-        //  adicionar transação
         Button(
             onClick = {
-                if (description.value.isNotBlank() && amount.value.isNotBlank()) {
-                    val newTransaction = Transaction(
-                        id = transactions.value.size + 1,
-                        description = description.value,
-                        amount = amount.value.toDouble(),
-                        type = transactionType.value,
-                        date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                if (description.isNotBlank() && amount.isNotBlank()) {
+                    transactions = transactions + Transaction(
+                        id = transactions.size + 1,
+                        description = description,
+                        amount = amount.toDouble(),
+                        isIncome = isIncome
                     )
-                    transactions.value = transactions.value + newTransaction
-                    description.value = ""
-                    amount.value = ""
+                    description = ""
+                    amount = ""
                 }
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Adicionar Transação")
+            Text("Adicionar")
         }
 
-        // Lista de transações
+        // Histórico
         Text(
-            text = "Histórico de Transações",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
+            "Últimas transações",
+            style = MaterialTheme.typography.titleMedium
         )
 
-        if (transactions.value.isEmpty()) {
-            Text(
-                text = "Nenhuma transação registrada",
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+        if (transactions.isEmpty()) {
+            Text("Nenhuma transação ainda")
         } else {
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                items(transactions.value.reversed()) { transaction ->
-                    TransactionItem(transaction = transaction)
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(transactions.reversed()) { transaction ->
+                    TransactionItem(transaction)
                 }
             }
         }
     }
 }
 
+// 3. Componente de item da transação
 @Composable
 fun TransactionItem(transaction: Transaction) {
-    val amountColor = if (transaction.type == "income") {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.error
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
+    Card(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            Column {
+                Text(transaction.description)
+                Text(
+                    transaction.date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
             Text(
-                text = transaction.description,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = "${if (transaction.type == "income") "+" else "-"} ${NumberFormat.getCurrencyInstance().format(transaction.amount)}",
-                color = amountColor,
-                style = MaterialTheme.typography.bodyLarge
+                "${if (transaction.isIncome) "+" else "-"} ${NumberFormat.getCurrencyInstance().format(transaction.amount)}",
+                color = if (transaction.isIncome) Color(0xFF2E7D32) else Color(0xFFC62828)
             )
         }
-        Text(
-            text = transaction.date,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
     }
 }
 
+// 4. Tema simplificado
 @Composable
-fun FinanceControlTheme(
+fun FinanceAppTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
@@ -231,8 +221,8 @@ fun FinanceControlTheme(
 
 @Preview(showBackground = true)
 @Composable
-fun FinanceControlPreview() {
-    FinanceControlTheme {
-        FinanceControlLayout()
+fun PreviewFinanceApp() {
+    FinanceAppTheme {
+        FinanceControlScreen()
     }
 }
