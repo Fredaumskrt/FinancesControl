@@ -226,3 +226,175 @@ fun PreviewFinanceApp() {
         FinanceControlScreen()
     }
 }
+
+
+//// PAGINA DE LOGIN / CADASTRO
+//@Composable
+//fun AuthFlowScreen() {
+//    var showLogin by remember { mutableStateOf(true) }
+//    var isLoggedIn by remember { mutableStateOf(false) }
+//
+//    if (isLoggedIn) {
+//        FinanceControlScreen()
+//    } else {
+//        if (showLogin) {
+//            LoginScreen(
+//                onLoginSuccess = { isLoggedIn = true },
+//                onNavigateToRegister = { showLogin = false }
+//            )
+//        } else {
+//            RegisterScreen(
+//                onRegisterSuccess = { isLoggedIn = true },
+//                onNavigateToLogin = { showLogin = true }
+//            )
+//        }
+//    }
+//}
+//
+//@Composable
+//fun LoginScreen(
+//    onLoginSuccess: () -> Unit,
+//    onNavigateToRegister: () -> Unit
+//) {
+//    var email by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//    var error by remember { mutableStateOf("") }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(32.dp),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text("Login", style = MaterialTheme.typography.headlineMedium)
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        OutlinedTextField(
+//            value = email,
+//            onValueChange = { email = it },
+//            label = { Text("Email") },
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        OutlinedTextField(
+//            value = password,
+//            onValueChange = { password = it },
+//            label = { Text("Senha") },
+//            visualTransformation = PasswordVisualTransformation(),
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        if (error.isNotEmpty()) {
+//            Text(error, color = Color.Red)
+//            Spacer(modifier = Modifier.height(8.dp))
+//        }
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        Button(
+//            onClick = {
+//                // Simples teste
+//                if (email.isNotBlank() && password.isNotBlank()) {
+//                    onLoginSuccess()
+//                } else {
+//                    error = "Preencha todos os campos"
+//                }
+//            },
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Text("Entrar")
+//        }
+//
+//        TextButton(onClick = onNavigateToRegister) {
+//            Text("Criar uma conta")
+//        }
+//    }
+//}
+//
+//@Composable
+//fun RegisterScreen(
+//    onRegisterSuccess: () -> Unit,
+//    onNavigateToLogin: () -> Unit
+//) {
+//    var email by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//    var confirmPassword by remember { mutableStateOf("") }
+//    var error by remember { mutableStateOf("") }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(32.dp),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text("Criar Conta", style = MaterialTheme.typography.headlineMedium)
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        OutlinedTextField(
+//            value = email,
+//            onValueChange = { email = it },
+//            label = { Text("Email") },
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        OutlinedTextField(
+//            value = password,
+//            onValueChange = { password = it },
+//            label = { Text("Senha") },
+//            visualTransformation = PasswordVisualTransformation(),
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        OutlinedTextField(
+//            value = confirmPassword,
+//            onValueChange = { confirmPassword = it },
+//            label = { Text("Confirmar Senha") },
+//            visualTransformation = PasswordVisualTransformation(),
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        if (error.isNotEmpty()) {
+//            Text(error, color = Color.Red)
+//            Spacer(modifier = Modifier.height(8.dp))
+//        }
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        Button(
+//            onClick = {
+//
+//                when {
+//                    email.isBlank() || password.isBlank() -> {
+//                        error = "Preencha todos os campos"
+//                    }
+//                    password != confirmPassword -> {
+//                        error = "As senhas não coincidem"
+//                    }
+//                    password.length < 6 -> {
+//                        error = "Senha deve ter pelo menos 6 caracteres"
+//                    }
+//                    else -> {
+//                        onRegisterSuccess()
+//                    }
+//                }
+//            },
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Text("Cadastrar")
+//        }
+//
+//        TextButton(onClick = onNavigateToLogin) {
+//            Text("Já tem uma conta? Faça login")
+//        }
+//    }
+//}
