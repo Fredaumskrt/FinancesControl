@@ -1,217 +1,245 @@
 package com.example.financescontrol
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.*
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+import androidx.compose.foundation.layout.*
+
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import com.example.financescontrol.ui.theme.FinanceControlScreen
+
 import java.util.*
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            FinanceAppTheme {
-                FinanceControlScreen()
+            FinanceControlTheme {
+                FinanceControlLayout() // objetivo eh trazer a tela pra ca
             }
         }
     }
 }
+// Modelo de dados para transações
+enum class TransactionCategory {
+    ALIMENTACAO, TRANSPORTE, MORADIA, LAZER, SAUDE, EDUCACAO, SALARIO, OUTROS
+}
 
-// 1. Modelo de dados simplificado
 data class Transaction(
     val id: Int,
     val description: String,
     val amount: Double,
-    val isIncome: Boolean,
-    val date: String = LocalDateTime.now()
-        .format(DateTimeFormatter.ofPattern("dd/MM HH:mm"))
+    val type: String,
+    val date: String,
+    val category: TransactionCategory
+
 )
 
-val euroFormat = NumberFormat.getCurrencyInstance().apply {
-    currency = Currency.getInstance("EUR")
-} // Reais -> Euro
-
-// 2. Tela principal tudo junto
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FinanceControlScreen() {
-    var description by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
-    var isIncome by remember { mutableStateOf(false) }
-    var transactions by remember { mutableStateOf<List<Transaction>>(emptyList()) }
+fun FinanceControlLayout() {
+    // Estados do aplicativo
+    val description = remember { mutableStateOf("") }
+    val amount = remember { mutableStateOf("") }
+    val transactionType = remember { mutableStateOf("expense") }
+    val transactions = remember { mutableStateOf(listOf<Transaction>()) }
 
-    val balance = transactions.sumOf { if (it.isIncome) it.amount else -it.amount }
+    // teste para saldo atual
+
+    val balanceTest = transactions.value.sumOf{
+        if (it.type == "income") it.amount else - it.amount
+    }
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp)
+            .safeDrawingPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        // Cabeçalho
         Text(
             text = "Controle Financeiro",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
+
+        // Exibe o saldo atual
+        Text(
+            text = "Saldo: ${NumberFormat.getCurrencyInstance().format(balanceTest)}",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Saldo
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = if (balance >= 0) Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
-            ),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Saldo Atual",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = euroFormat.format(balance),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = if (balance >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
-                )
-            }
-
-            // Se for usar saldo BRL descomentar esta linha
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp),
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                Text("Saldo Atual")
-//                Text(
-//                    NumberFormat.getCurrencyInstance().format(balance),
-//                    style = MaterialTheme.typography.headlineMedium,
-//                    color = if (balance >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
-//                )
-//            }
-        }
-
-        // Formulário
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
+        // Campo de descrição
+        TextField(
+            value = description.value,
+            onValueChange = { description.value = it },
             label = { Text("Descrição") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
         )
 
-        OutlinedTextField(
-            value = euroFormat.format(amount.toDoubleOrNull() ?: 0.0),
-            onValueChange = { /* lógica de conversão */ },
+        // Campo de valor
+        TextField(
+            value = amount.value,
+            onValueChange = { newValue ->
+                if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                    amount.value = newValue
+                }
+            },
             label = { Text("Valor") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
         )
 
+        // Seleção do tipo de transação
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         ) {
             RadioButton(
-                selected = !isIncome,
-                onClick = { isIncome = false }
+                selected = transactionType.value == "expense",
+                onClick = { transactionType.value = "expense" }
             )
-            Text("Despesa")
-
-            Spacer(modifier = Modifier.width(16.dp))
+            Text("Despesa", modifier = Modifier.padding(end = 16.dp))
 
             RadioButton(
-                selected = isIncome,
-                onClick = { isIncome = true }
+                selected = transactionType.value == "income",
+                onClick = { transactionType.value = "income" }
             )
             Text("Receita")
         }
 
+        //  adicionar transação
         Button(
             onClick = {
-                if (description.isNotBlank() && amount.isNotBlank()) {
-                    transactions = transactions + Transaction(
-                        id = transactions.size + 1,
-                        description = description,
-                        amount = amount.toDouble(),
-                        isIncome = isIncome
-                    )
-                    description = ""
-                    amount = ""
+                try {
+                    if (description.value.isNotBlank() && amount.value.isNotBlank()) {
+                        val amountValue = amount.value.toDoubleOrNull()
+                            ?: return@Button // Sai se não for número válido
+
+                        transactions.value = transactions.value + Transaction(
+                            id = System.currentTimeMillis().toInt(),
+                            description = description.value,
+                            amount = amountValue,
+                            type = transactionType.value,
+                            date = LocalDateTime.now()
+                                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                            category = TransactionCategory.OUTROS
+                        )
+                        description.value = ""
+                        amount.value = ""
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
         ) {
-            Text("Adicionar")
+            Text("Adicionar Transação")
         }
-
-        // Histórico
+        // Lista de transações
         Text(
-            "Últimas transações",
-            style = MaterialTheme.typography.titleMedium
+            text = "Histórico de Transações",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
         )
 
-        if (transactions.isEmpty()) {
-            Text("Nenhuma transação ainda")
+        if (transactions.value.isEmpty()) {
+            Text(
+                text = "Nenhuma transação registrada",
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
         } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(transactions.reversed()) { transaction ->
-                    TransactionItem(transaction)
+            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                items(transactions.value.reversed()) { transaction ->
+                    TransactionItem(transaction = transaction)
                 }
             }
         }
     }
 }
 
-// 3. Componente de item da transação
 @Composable
 fun TransactionItem(transaction: Transaction) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
+    val amountColor = if (transaction.type == "income") {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.error
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
-                Text(transaction.description)
-                Text(
-                    transaction.date,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
             Text(
-                "${if (transaction.isIncome) "+" else "-"} ${NumberFormat.getCurrencyInstance().format(transaction.amount)}",
-                color = if (transaction.isIncome) Color(0xFF2E7D32) else Color(0xFFC62828)
+                text = transaction.description,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "${if (transaction.type == "income") "+" else "-"} ${NumberFormat.getCurrencyInstance().format(transaction.amount)}",
+                color = amountColor,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
+        Text(
+            text = transaction.date,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
     }
 }
 
-// 4. Tema simplificado
 @Composable
-fun FinanceAppTheme(
+fun FinanceControlTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
@@ -219,10 +247,182 @@ fun FinanceAppTheme(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
-fun PreviewFinanceApp() {
-    FinanceAppTheme {
-        FinanceControlScreen()
+fun FinanceControlPreview() {
+    FinanceControlTheme {
+        FinanceControlLayout()
     }
 }
+
+//// PAGINA DE LOGIN / CADASTRO
+//@Composable
+//fun AuthFlowScreen() {
+//    var showLogin by remember { mutableStateOf(true) }
+//    var isLoggedIn by remember { mutableStateOf(false) }
+//
+//    if (isLoggedIn) {
+//        FinanceControlScreen()
+//    } else {
+//        if (showLogin) {
+//            LoginScreen(
+//                onLoginSuccess = { isLoggedIn = true },
+//                onNavigateToRegister = { showLogin = false }
+//            )
+//        } else {
+//            RegisterScreen(
+//                onRegisterSuccess = { isLoggedIn = true },
+//                onNavigateToLogin = { showLogin = true }
+//            )
+//        }
+//    }
+//}
+//
+//@Composable
+//fun LoginScreen(
+//    onLoginSuccess: () -> Unit,
+//    onNavigateToRegister: () -> Unit
+//) {
+//    var email by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//    var error by remember { mutableStateOf("") }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(32.dp),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text("Login", style = MaterialTheme.typography.headlineMedium)
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        OutlinedTextField(
+//            value = email,
+//            onValueChange = { email = it },
+//            label = { Text("Email") },
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        OutlinedTextField(
+//            value = password,
+//            onValueChange = { password = it },
+//            label = { Text("Senha") },
+//            visualTransformation = PasswordVisualTransformation(),
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        if (error.isNotEmpty()) {
+//            Text(error, color = Color.Red)
+//            Spacer(modifier = Modifier.height(8.dp))
+//        }
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        Button(
+//            onClick = {
+//                // Simples teste
+//                if (email.isNotBlank() && password.isNotBlank()) {
+//                    onLoginSuccess()
+//                } else {
+//                    error = "Preencha todos os campos"
+//                }
+//            },
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Text("Entrar")
+//        }
+//
+//        TextButton(onClick = onNavigateToRegister) {
+//            Text("Criar uma conta")
+//        }
+//    }
+//}
+//
+//@Composable
+//fun RegisterScreen(
+//    onRegisterSuccess: () -> Unit,
+//    onNavigateToLogin: () -> Unit
+//) {
+//    var email by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//    var confirmPassword by remember { mutableStateOf("") }
+//    var error by remember { mutableStateOf("") }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(32.dp),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text("Criar Conta", style = MaterialTheme.typography.headlineMedium)
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        OutlinedTextField(
+//            value = email,
+//            onValueChange = { email = it },
+//            label = { Text("Email") },
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        OutlinedTextField(
+//            value = password,
+//            onValueChange = { password = it },
+//            label = { Text("Senha") },
+//            visualTransformation = PasswordVisualTransformation(),
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        OutlinedTextField(
+//            value = confirmPassword,
+//            onValueChange = { confirmPassword = it },
+//            label = { Text("Confirmar Senha") },
+//            visualTransformation = PasswordVisualTransformation(),
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        if (error.isNotEmpty()) {
+//            Text(error, color = Color.Red)
+//            Spacer(modifier = Modifier.height(8.dp))
+//        }
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        Button(
+//            onClick = {
+//
+//                when {
+//                    email.isBlank() || password.isBlank() -> {
+//                        error = "Preencha todos os campos"
+//                    }
+//                    password != confirmPassword -> {
+//                        error = "As senhas não coincidem"
+//                    }
+//                    password.length < 6 -> {
+//                        error = "Senha deve ter pelo menos 6 caracteres"
+//                    }
+//                    else -> {
+//                        onRegisterSuccess()
+//                    }
+//                }
+//            },
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Text("Cadastrar")
+//        }
+//
+//        TextButton(onClick = onNavigateToLogin) {
+//            Text("Já tem uma conta? Faça login")
+//        }
+//    }
+//}
