@@ -18,6 +18,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -40,7 +41,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -58,13 +58,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
 
-    // Colocar as dependencias de forma correta
-    implementation (com.github.PhilJay:MPAndroidChart:v3.1.0)
-    implementation (androidx.compose.material:material-icons-extended)
-    implementation (androidx.navigation:navigation-compose:2.7.0)
-    implementation (androidx.room:room-runtime:2.5.2)
-    kapt (androidx.room:room-compiler:2.5.2)
-    implementation (androidx.room:room-ktx:2.5.2)
+
+    implementation("androidx.compose.material:material-icons-extended:1.5.4")
+    implementation("androidx.navigation:navigation-compose:2.7.0")
+    implementation("androidx.room:room-runtime:2.5.2")
+//    kapt("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:2.5.2")
+
 }
 
 
