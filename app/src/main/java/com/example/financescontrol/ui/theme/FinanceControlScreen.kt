@@ -6,6 +6,5 @@ import com.example.financescontrol.ui.theme.FinancesControlTheme
 
 @Composable
 fun FinanceControlScreen() {
-    FinancesControlTheme {
-    }
+
 }
